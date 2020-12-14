@@ -242,10 +242,10 @@ def select_champ(other_champs=None, champs=None, count_file=0):
     if champs is not None:
         if champs != 0:
             for elem in champs:
-                champs_links[elem] = championships_links[elem]
+                champs_links[elem] = MATCHENDIRECT_URLS_DICT[elem]
     else:
-        for elem in championships_links.keys():
-            champs_links[elem] = championships_links[elem]
+        for elem in MATCHENDIRECT_URLS_DICT.keys():
+            champs_links[elem] = MATCHENDIRECT_URLS_DICT[elem]
     count_no_match = 0 # compte le nombre de championnats qui ont au moins un match en cours
     nb_champs_with_stats = 0 # ajoute à l'info précédente, la présence de statistiques pour les matchs
     for champ in champs_links.keys(): # on ouvre tous les championnats un par un
