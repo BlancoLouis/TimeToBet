@@ -5,7 +5,6 @@ from sklearn import preprocessing
 from sklearn import metrics
 import os
 import numpy as np
-import subprocess
 import pyautogui
 import time
 
@@ -62,8 +61,9 @@ def find_scoreless(dictionnary, files_list):
 
 
 def complete_data(dataset, games_list):
+    dataset_new = dataset
     for game in games_list.keys():
-        # print(game)
+        print(game)
         min_with_stats = {}
         for row in range(dataset.shape[0]):
             if dataset.iloc[row, 1] == pd.read_csv(games_list[game]).iloc[0, 1]:
@@ -92,10 +92,13 @@ def complete_data(dataset, games_list):
                         prop_time = (i - min_bornes[0]) / (min_bornes[1] - min_bornes[0])
                         values_nl_1.append(np.floor(prop_time * (v_sup_1 - v_inf_1) + v_inf_1))
                         values_nl_2.append(np.floor(prop_time * (v_sup_2 - v_inf_2) + v_inf_2))
-                    dataset.loc[dataset.shape[0]] = values_nl_1
-                    dataset.loc[dataset.shape[0]] = values_nl_2
+                    dataset_new.loc[dataset_new.shape[0]] = values_nl_1
+                    dataset_new.loc[dataset_new.shape[0]] = values_nl_2
+    dataset_new.dropna()
+    for row in range(dataset.shape[0]):
+        dataset_new['Time'] = dataset_new.loc[row, 'Minute'][0:len(dataset_new.loc[row, 'Minute']) - 1]
 
-    return dataset
+    return dataset_new
 
 
 def ignore_files():
@@ -228,18 +231,36 @@ def prepare_data(dataset, stds, minute):
 
 def predict(dataset, file):
     minute = int(dataset.loc[0, 'Minute'][0:2])
+    t1_buts = dataset.loc[0, 'Buts']
+    t2_buts = dataset.loc[1, 'Buts']
     models = [regs(file, minute, 0), regs(file, minute, 1)]
     data = prepare_data(dataset, [models[0][1], models[1][1]], minute)
-    y1_pred = models[0][0].predict(data[0][0])
-    y2_pred = models[1][0].predict(data[1][0])
-    print(y1_pred, y2_pred)
-    print(models[0][0].classes_, models[1][0].classes_)    
+    y1_scores = models[0][0].decision_function(data[0][0])[0]
+    y2_scores = models[1][0].decision_function(data[0][0])[0]
+    print(y1_scores, y2_scores)
+    ns = likely_scores([y1_scores, y2_scores], [t1_buts, t2_buts])
+    ns[0] = list(ns[0])
+    ns[1] = list(ns[1])
+    print(ns)
+    prediction = [ns[0].index(max(ns[0])), ns[1].index(max(ns[1]))]
+    return prediction
 
 
-# gather_data()
+def likely_scores(scores, buts):
+    new_score = lambda score, gap: score * ((1 + gap) ** (-1 / 2))
+    for i, elem in enumerate(scores):
+        for j, score in enumerate(elem):
+            gap = j - buts[i]
+            if j - buts[i] < 0:
+                scores[i][j] = 0
+    return scores
+
+
+
+gather_data()
 # sep_by_time([pd.read_csv('touteladonnée')])
 # sep_by_team(pd.read_csv('touteladonnée'))
 # regs('touteladonnée', 80, 0)
-# predict(pd.read_csv("Valence_Athletic Bilbao_70'"), 'alldata')
-ignore_files()
-to_git(['med.py', 'modelization.py', '.gitignore', 'alldata'])
+print(predict(pd.read_csv("Atalanta_Fiorentina_69'"), 'alldata'))
+# ignore_files()
+# to_git(['med.py', 'modelization.py', '.gitignore', 'alldata'])

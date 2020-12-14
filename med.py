@@ -144,8 +144,9 @@ def red_card():
                 print(link)
         browser.quit()
 
-get_stats({'Pays-bas': 'https://www.matchendirect.fr/pays-bas/eredivisie/', 'Turquie': 'https://www.matchendirect.fr/turquie/bank-asya-1-lig/'})
+# get_stats({'Pays-bas': 'https://www.matchendirect.fr/pays-bas/eredivisie/', 'Turquie': 'https://www.matchendirect.fr/turquie/bank-asya-1-lig/'})
 
-# infos_game('https://www.matchendir    ect.fr/live-score/nacional-asuncion-river-plate-2198279.html')
+# infos_game('https://www.matchendirect.fr/live-score/mumbai-city-jamshedpur.html')
+
 
 # red_card()
