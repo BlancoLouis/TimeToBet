@@ -245,6 +245,7 @@ def prepare_data(dataset, stds, minute):
 
 def predict(dataset, file):
     minute = int(dataset.loc[0, 'Minute'][0:2])
+    dataset['Time'] = minute
     t1_buts = dataset.loc[0, 'Buts']
     t2_buts = dataset.loc[1, 'Buts']
     models = [regs(file, minute, 0), regs(file, minute, 1)]
