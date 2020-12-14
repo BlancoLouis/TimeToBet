@@ -14,12 +14,10 @@ def gather_data(complete_file, update=False):
     y1, y2, final_scores_list = final_scores(files_list)    
     scoreless = find_scoreless(final_scores_list, files_list)
     data_all = pd.DataFrame()
-    print(final_scores_list)
     for file in files_list:
         if file not in final_scores_list.keys() and file not in scoreless:
             data_all = pd.concat([data_all, pd.read_csv(file)])
             data_all.reset_index(drop=True, inplace=True)
-    print(data_all.shape[0])
     gathered_data = complete_data(data_all, final_scores_list, update, complete_file, y1)
     gathered_data.to_csv(complete_file)
     to_git(['med.py', 'modelization.py', '.gitignore', 'alldata'])
@@ -115,11 +113,6 @@ def complete_data(dataset, games_list, update, complete_file, y1):
         dataset_new['Time'] = dataset_new.loc[row, 'Minute'][0:len(dataset_new.loc[row, 'Minute']) - 1]
 
     return dataset_new
-
-def already_completed(complete_file):
-    file = pd.read_csv(complete_file)
-    list_matchs = list(file['Match'].unique())
-    return list_matchs
 
 
 def ignore_files():
