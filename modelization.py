@@ -8,24 +8,32 @@ import numpy as np
 import pyautogui
 import time
 
-def gather_data():
+def gather_data(complete_file, update=False):
     ignore_files()
     files_list = [file for file in os.listdir() if file[-1] == "'"]
-    y1, y2, final_scores_list = final_scores(files_list)
+    y1, y2, final_scores_list = final_scores(files_list)    
     scoreless = find_scoreless(final_scores_list, files_list)
     data_all = pd.DataFrame()
+    print(final_scores_list)
     for file in files_list:
         if file not in final_scores_list.keys() and file not in scoreless:
             data_all = pd.concat([data_all, pd.read_csv(file)])
             data_all.reset_index(drop=True, inplace=True)
     print(data_all.shape[0])
-    gathered_data = complete_data(data_all, final_scores_list)
-    gathered_data.to_csv('alldata')
+    gathered_data = complete_data(data_all, final_scores_list, update, complete_file)
+    gathered_data.to_csv(complete_file)
     to_git(['med.py', 'modelization.py', '.gitignore', 'alldata'])
 
 
+def location(texte, car):
+    list_ind = []
+    for i, j in enumerate(texte):
+        if j == car:
+            list_ind.append(i)
+    return list_ind
+
+
 def final_scores(files_list):
-    location = lambda texte, car: [i for i, j in enumerate(texte) if j == car]
     games_list = {}
     for i in range(len(files_list)):
         pos_minute = location(files_list[i], '_')[1]
@@ -60,8 +68,16 @@ def find_scoreless(dictionnary, files_list):
     return scoreless
 
 
-def complete_data(dataset, games_list):
+def complete_data(dataset, games_list, update, complete_file):
     dataset_new = dataset
+    if update:
+        already_compl = already_completed(complete_file)
+        games_list_new = {}
+        for game in games_list.keys():
+            url = pd.read_csv(games_list[game]).loc[0, 'Match']
+            if url not in already_compl:
+                games_list_new[game] = games_list[game]
+        games_list = games_list_new
     for game in games_list.keys():
         print(game)
         min_with_stats = {}
@@ -99,6 +115,11 @@ def complete_data(dataset, games_list):
         dataset_new['Time'] = dataset_new.loc[row, 'Minute'][0:len(dataset_new.loc[row, 'Minute']) - 1]
 
     return dataset_new
+
+def already_completed(complete_file):
+    file = pd.read_csv(complete_file)
+    list_matchs = list(file['Match'].unique())
+    return list_matchs
 
 
 def ignore_files():
@@ -257,7 +278,7 @@ def likely_scores(scores, buts):
 
 
 
-gather_data()
+gather_data('alldata', True)
 # sep_by_time([pd.read_csv('touteladonnée')])
 # sep_by_team(pd.read_csv('touteladonnée'))
 # regs('touteladonnée', 80, 0)
