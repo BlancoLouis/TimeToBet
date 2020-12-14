@@ -14,7 +14,6 @@ from pandas.util.testing import assert_frame_equal
 import plotly.express as px
 import plotly.graph_objects as go
 from fuzzywuzzy import process
-import threading
 
 
 BET_URLS_DICT = {
@@ -24,9 +23,6 @@ BET_URLS_DICT = {
     'Liga': 'https://www.betclic.com/fr/paris-sportifs/football-s1/espagne-liga-primera-c7',
     'SerieA': 'https://www.betclic.com/fr/paris-sportifs/football-s1/italie-serie-a-c6',
     'Bundesliga': 'https://www.betclic.com/fr/paris-sportifs/football-s1/allemagne-bundesliga-c5',
-    'LDC': 'https://www.betclic.com/fr/paris-sportifs/football-s1/ligue-des-champions-c8',
-    'Europa': 'https://www.betclic.com/fr/paris-sportifs/football-s1/ligue-europa-c3453',
-    'Grèce': 'https://www.betclic.com/fr/paris-sportifs/football-s1/grece-superleague-c38'
 }
 
 MATCHENDIRECT_URLS_DICT = {
@@ -36,7 +32,6 @@ MATCHENDIRECT_URLS_DICT = {
     'Liga': 'https://www.matchendirect.fr/espagne/primera-division/',
     'SerieA': 'https://www.matchendirect.fr/italie/serie-a/',
     'Bundesliga': 'https://www.matchendirect.fr/allemagne/bundesliga-1/',
-    'Grèce': 'https://www.matchendirect.fr/grece/super-league/'
 }
 
 BETCLIC_URL = 'https://www.betclic.com/fr/paris-sportifs/football-s1'
@@ -669,15 +664,3 @@ def background():
 
 if __name__ == '__main__':
     app.run_server(debug = True)
-
-'''
-def start_server(app, **kwargs):
-    def run():
-        app.run_server(debug=True, **kwargs)
-
-b = threading.Thread(name='background', target=background)
-f = threading.Thread(name='foreground', target=foreground)
-
-b.start()
-f.start()
-'''
