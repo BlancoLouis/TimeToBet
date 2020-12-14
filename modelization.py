@@ -20,7 +20,7 @@ def gather_data(complete_file, update=False):
             data_all = pd.concat([data_all, pd.read_csv(file)])
             data_all.reset_index(drop=True, inplace=True)
     print(data_all.shape[0])
-    gathered_data = complete_data(data_all, final_scores_list, update, complete_file)
+    gathered_data = complete_data(data_all, final_scores_list, update, complete_file, y1)
     gathered_data.to_csv(complete_file)
     to_git(['med.py', 'modelization.py', '.gitignore', 'alldata'])
 
@@ -68,10 +68,10 @@ def find_scoreless(dictionnary, files_list):
     return scoreless
 
 
-def complete_data(dataset, games_list, update, complete_file):
+def complete_data(dataset, games_list, update, complete_file, y1):
     dataset_new = dataset
     if update:
-        already_compl = already_completed(complete_file)
+        already_compl = list(y1['Match'].unique())
         games_list_new = {}
         for game in games_list.keys():
             url = pd.read_csv(games_list[game]).loc[0, 'Match']
