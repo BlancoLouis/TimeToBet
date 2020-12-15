@@ -2,7 +2,6 @@ from selenium import webdriver
 # from selenium.webdriver.common.keys import Keys
 import time
 import pandas as pd
-import numpy as np
 import os
 
 path_to_web_driver = "chromedriver"
@@ -28,6 +27,8 @@ championships_links = {'L1':
 
 
 def select_champ(other_champs=None, champs=None):
+    """Boucle sur tous les championnats choisis pour établir
+    la liste de ceux qui ont des matchs actuellement en direct"""
     champs_links = {}
 # on regarde si l'utilisateur veut ajouter un championnat à la liste de base
     if other_champs is not None:
@@ -42,9 +43,8 @@ def select_champ(other_champs=None, champs=None):
     else:
         for elem in championships_links.keys():
             champs_links[elem] = championships_links[elem]
-    count_no_match = 0 # compte le nombre de championnats qui ont au moins un match en cours
-    nb_champs_with_stats = 0 # ajoute à l'info précédente, la présence de statistiques pour les matchs
-    for champ in champs_links.keys(): # on ouvre tous les championnats un par un 
+    count_no_match = 0
+    for champ in champs_links.keys():
         chrome_options = webdriver.ChromeOptions()
         browser = webdriver.Chrome(executable_path=path_to_web_driver,
                                    options=chrome_options)
@@ -54,32 +54,35 @@ def select_champ(other_champs=None, champs=None):
             browser.find_element_by_id('onetrust-accept-btn-handler').click()
         except:
             pass
-        games_list = browser.find_elements_by_class_name('sl') # trouve les matchs en cours
-        if len(games_list) > 0: # on vérifie qu'il y a bien des matchs en cours dans le championnat
+        games_list = browser.find_elements_by_class_name('sl')
+        if len(games_list) > 0:
             count_no_match += 1
             select_game(len(games_list), browser)
         browser.quit()
 
-    if count_no_match == 0: # s'il n'y a pas de match alors le programme va attendre avant de redémarrer
+    if count_no_match == 0:
         time.sleep(30)
         browser.quit()
         return
     return
 
 
-def select_game(size, browser_origin):  # sélectionne tous les matchs en cours d'un championnat et agrège leurs stats une fois récupérées
+def select_game(size, browser_origin):
+    """Boucle sur un championnat pour ouvrir
+    les pages des matchs en direct de ce championnat."""
     browser = browser_origin
-    agg_stats = None
     for i in range(size):
         games_list = browser.find_elements_by_class_name('sl')
-        if i < size: # si la liste des matchs en cours diminue pendant qu'on boucle
+        if i < size:
             link = games_list[i].find_element_by_css_selector('a').get_attribute('href')
             infos_game(link)
     browser.quit()
     return
 
 
-def infos_game(link=None, to_csv=True):  # récupère les statistiques d'un match donné
+def infos_game(link=None, to_csv=True):
+    """Depuis la page matchendirect d'un match précis, on récupère toutes
+    les statistiques disponibles et on les enregistre dans un fichier csv."""
 
     if link is not None:
         chrome_options = webdriver.ChromeOptions()
@@ -105,8 +108,11 @@ def infos_game(link=None, to_csv=True):  # récupère les statistiques d'un matc
         for i in range(int(len(stats) / 5)):
             t_1[stats[5 * i + 2].text] = stats[5 * i].text
             t_2[stats[5 * i + 2].text] = stats[5 * i + 4].text
-        game_stats = pd.DataFrame(data=[list(t_1.values()), list(t_2.values())],
-                                  index=index, columns=stats_cats)
+        game_stats = pd.DataFrame(
+            data=[list(t_1.values()),
+                  list(t_2.values())],
+            index=index,
+            columns=stats_cats)
         browser.quit()
     else:
         game_stats = None
@@ -116,17 +122,21 @@ def infos_game(link=None, to_csv=True):  # récupère les statistiques d'un matc
     return(game_stats)
 
 
-def get_stats(other_champs=None, champs=None): # lance la boucle sur les championnats, récupère un dataframe de toutes les stats et en fait un fichier csv unique
+def get_stats(other_champs=None, champs=None):
+    """ Récupère une fois par minute les statistiques
+    des matchs en direct des championnats sélectionnés."""
     start_time = time.time()
     select_champ(other_champs, champs)
     end_time = time.time()
     duration = end_time - start_time
-    if duration < 60: # rien ne sert plusieurs fois les stats d'un même match sur une même minute
+    if duration < 60:
         time.sleep(60 - duration)
     get_stats(other_champs, champs)
 
 
 def red_card():
+    """Affiche tous les matchs déjà étudiés dans lesquels
+    un carton rouge a été distribué."""
     files_list = [file for file in os.listdir() if file[-1] == "'"]
     links = set()
     for file in files_list:
@@ -144,7 +154,8 @@ def red_card():
                 print(link)
         browser.quit()
 
-# get_stats({'Pays-bas': 'https://www.matchendirect.fr/pays-bas/eredivisie/', 'Turquie': 'https://www.matchendirect.fr/turquie/bank-asya-1-lig/'})
+
+get_stats()
 
 # infos_game('https://www.matchendirect.fr/live-score/mumbai-city-jamshedpur.html')
 
