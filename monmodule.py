@@ -18,8 +18,6 @@ import json
 import re
 import datetime
 from pandas.util.testing import assert_frame_equal
-import plotly.express as px
-import plotly.graph_objects as go
 from fuzzywuzzy import process
 
 
@@ -1050,11 +1048,11 @@ def background():
 
 # Lancement de l'app sur serveur local
 
-# if __name__ == '__main__':
-#     app.run_server(debug=True)
+if __name__ == '__main__':
+    app.run_server(debug=True)
 
 
-to_git(['bettime.ipynb', 'monmodule.py'],
-       "'Documents/ENSAE/Python pour Data Scientist/TimeToBet'",
-       "'git@github.com:BlancoLouis/TimeToBet.git'",
-       "password_github.txt")
+# to_git(['bettime.ipynb', 'monmodule.py'],
+       # "'Documents/ENSAE/Python pour Data Scientist/TimeToBet'",
+       # "'git@github.com:BlancoLouis/TimeToBet.git'",
+       # "password_github.txt")
