@@ -147,7 +147,7 @@ def infos_game(link=None, to_csv=True):
         game_stats = None
     if game_stats is not None and to_csv:
         csv_file_name = str(team_1) + "_" + str(team_2) + '_' + str(minute)
-        game_stats.to_csv("data/" + csv_file_name)
+        game_stats.to_csv(csv_file_name)
     return(game_stats)
 
 
@@ -169,7 +169,7 @@ def red_card():
     files_list = [file for file in os.listdir() if file[-1] == "'"]
     links = set()
     for file in files_list:
-        links.add(pd.read_csv("data/" + file).loc[0, 'Match'])
+        links.add(pd.read_csv(file).loc[0, 'Match'])
     print(links)
     for link in links:
         chrome_options = webdriver.ChromeOptions()
@@ -194,7 +194,7 @@ def gather_data(complete_file, update=False, to_git_or_not_to_git=True):
     for file in files_list:
         if (file not in final_scores_list.keys()
             and file not in scoreless):
-            data_all = pd.concat([data_all, pd.read_csv("data/" + file)])
+            data_all = pd.concat([data_all, pd.read_csv(file)])
             data_all.reset_index(drop=True, inplace=True)
     gathered_data = complete_data(data_all,
                                   final_scores_list, update, complete_file, y1)
@@ -230,11 +230,10 @@ def final_scores(files_list):
     y1 = pd.DataFrame(columns=['Match', 'Nb_buts'])
     y2 = pd.DataFrame(columns=['Match', 'Nb_buts'])
     for i, match in enumerate(games_list):
-        path = "data/" + games_list[match]
-        y1.loc[i, 'Match'] = pd.read_csv(path).iloc[0]['Match']
-        y1.loc[i, 'Nb_buts'] = pd.read_csv(path).iloc[0]['Buts']
-        y2.loc[i, 'Match'] = pd.read_csv(path).iloc[1]['Match']
-        y2.loc[i, 'Nb_buts'] = pd.read_csv(path).iloc[1]['Buts']
+        y1.loc[i, 'Match'] = pd.read_csv(games_list[match]).iloc[0]['Match']
+        y1.loc[i, 'Nb_buts'] = pd.read_csv(games_list[match]).iloc[0]['Buts']
+        y2.loc[i, 'Match'] = pd.read_csv(games_list[match]).iloc[1]['Match']
+        y2.loc[i, 'Nb_buts'] = pd.read_csv(games_list[match]).iloc[1]['Buts']
 
     return y1, y2, games_list
 
@@ -243,7 +242,7 @@ def find_scoreless(dictionnary, files_list):
     """Liste les matchs pour lesquels le score final est incertain"""
     scoreless = []
     for elem in dictionnary.keys():
-        match = pd.read_csv("data/" + dictionnary[elem])
+        match = pd.read_csv(dictionnary[elem])
         if int(match.loc[0, 'Minute'][0:2]) < 89:
             for file in files_list:
                 if file == dictionnary[elem]:
@@ -260,8 +259,7 @@ def complete_data(dataset, games_list, update, complete_file, y1):
         already_compl = list(y1['Match'].unique())
         games_list_new = {}
         for game in games_list.keys():
-            path = "data/" + games_list[game]
-            url = pd.read_csv(path).loc[0, 'Match']
+            url = pd.read_csv(games_list[game]).loc[0, 'Match']
             if url not in already_compl:
                 games_list_new[game] = games_list[game]
         games_list = games_list_new
@@ -269,7 +267,7 @@ def complete_data(dataset, games_list, update, complete_file, y1):
         print(game)
         min_with_stats = {}
         for row in range(dataset.shape[0]):
-            if dataset.iloc[row, 1] == pd.read_csv(path).iloc[0, 1]:
+            if dataset.iloc[row, 1] == pd.read_csv(games_list[game]).iloc[0, 1]:
                 row_minute = int(dataset.iloc[row, 0][:-1])
                 min_with_stats[row_minute] = row
         list_min_with_stats = list(min_with_stats.keys())
