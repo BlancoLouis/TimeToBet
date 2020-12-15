@@ -184,7 +184,7 @@ def red_card():
         browser.quit()
 
 
-def gather_data(complete_file, update=False):
+def gather_data(complete_file, update=False, to_git_or_not_to_git=True):
     """ Retravaille les données collectées pour les rendre exploitables."""
     ignore_files()
     files_list = [file for file in os.listdir() if file[-1] == "'"]
@@ -199,7 +199,8 @@ def gather_data(complete_file, update=False):
     gathered_data = complete_data(data_all,
                                   final_scores_list, update, complete_file, y1)
     gathered_data.to_csv(complete_file)
-    to_git(['med.py', 'modelization.py', '.gitignore', 'alldata'])
+    if to_git_or_not_to_git :
+        to_git(['med.py', 'modelization.py', '.gitignore', 'alldata'])
 
 
 def location(texte, car):
@@ -463,7 +464,11 @@ def predict(dataset, file):
     """Prédit le score d'un match et sa probabilité
     à partir des statistiques de ce match et d'une base de données
     contenant des statistiques de matchs similaires."""
-    minute = int(dataset.loc[0, 'Minute'][0:2])
+    minute = dataset.loc[0, 'Minute'][0:2]
+    if minute == 'Mi':
+        minute = 45
+    else :
+        minute = int(minute)
     dataset['Time'] = minute
     t1_buts = dataset.loc[0, 'Buts']
     t2_buts = dataset.loc[1, 'Buts']
