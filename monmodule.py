@@ -417,7 +417,7 @@ def regs(datafile, minute, team):
     """Crée un modèle de régression logistique multiclasse,
     entraîné sur un train set standardisé, testé sur un test
     set standardisé."""
-    data = sep_by_time(sep_by_team(pd.read_csv("data/" + datafile)))
+    data = sep_by_time(sep_by_team(pd.read_csv(datafile)))
 
     X = data[team][minute - 20]
     y = pd.DataFrame()
