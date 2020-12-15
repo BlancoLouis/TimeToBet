@@ -1,4 +1,5 @@
 
+.ipynb_checkpoints
 Adanaspor FK_Altay SK Izmir_18'
 Adanaspor FK_Altay SK Izmir_20'
 Adanaspor FK_Altay SK Izmir_23'
@@ -286,6 +287,7 @@ Bayer Leverkusen_Slavia Prague_8'
 Bayer Leverkusen_Slavia Prague_90'
 Bayer Leverkusen_Slavia Prague_92'
 Bayer Leverkusen_Slavia Prague_Mi-temps
+bettime.ipynb
 Bologne_Rome_11'
 Bologne_Rome_16'
 Bologne_Rome_19'
@@ -690,6 +692,8 @@ CSKA Sofia_Rome_74'
 CSKA Sofia_Rome_76'
 CSKA Sofia_Rome_8'
 CSKA Sofia_Rome_Mi-temps
+data
+Data Viz.py
 debug.log
 Dinamo Zagreb_CSKA Moscou_10'
 Dinamo Zagreb_CSKA Moscou_12'
@@ -792,6 +796,7 @@ Elche_Grenade_49'
 Elche_Grenade_50'
 Elche_Grenade_51'
 Elche_Grenade_Mi-temps
+environnement.yml
 Fribourg_Arminia Bielefeld_10'
 Fribourg_Arminia Bielefeld_13'
 Fribourg_Arminia Bielefeld_14'
@@ -1553,6 +1558,7 @@ Milan_Parme_9'
 Milan_Parme_90'
 Milan_Parme_92'
 Milan_Parme_Mi-temps
+monmodule.py
 Nancy_Auxerre_11'
 Nancy_Auxerre_13'
 Nancy_Auxerre_16'
