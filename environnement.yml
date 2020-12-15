@@ -1,0 +1,18 @@
+channels:
+  - conda-forge
+
+dependencies:
+  - python
+  - jupyter
+  - pandas 
+  - sklearn
+  - os
+  - numpy
+  - pyautogui
+  - time
+  - selenium
+  - datetime
+  - bs4
+  - json
+  - re
+  - fuzzywuzzy
