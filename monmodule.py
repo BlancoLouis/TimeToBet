@@ -1134,7 +1134,7 @@ def update_graph(odd_df, stat_df, previous_x=[], previous_y=[]):
     target_odd = 1
     if stat_df is not None:
         stat_df = stat_df.to_csv('stat')
-        this_minute_score, this_minute_proba = monmodule.predict(pd.read_csv('stat'), 'alldata')
+        this_minute_score, this_minute_proba = predict(pd.read_csv('stat'), 'alldata')
         for proba in this_minute_proba:
             if proba == -float('-inf'):
                 proba = 1
