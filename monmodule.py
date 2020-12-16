@@ -324,11 +324,20 @@ def ignore_files():
     fichier = open(".gitignore", "w", encoding='utf-8')
     fichier.close()
     for file in os.listdir():
-        if file not in ['alldata', '.git',
-                        '.gitignore', 'med.py', 'modelization.py']:
+        if file not in ['alldata',
+                        '.git',
+                        '.gitignore',
+                        'forignore.txt',
+                        'monmodule.py']:
             fichier = open(".gitignore", "a", encoding='utf-8')
             fichier.write('\n' + file)
             fichier.close()
+    content = open("forignore.txt", "r", encoding='utf-8')
+    for line in content:
+        fichier = open(".gitignore", "a", encoding='utf-8')
+        fichier.write('\n' + line)
+        fichier.close()
+
 
 
 def to_git(to_update, directory, ssh_key, passphrase_file):
@@ -1119,7 +1128,9 @@ def get_stat_df(live_team, refresh):
 
 # Lancement de l'app sur serveur local
 
-#if __name__ == '__main__':
+# if __name__ == '__main__':
 #    app.run_server(debug=True)
 
 # gather_data('alldata', False, False)
+
+ignore_files()
