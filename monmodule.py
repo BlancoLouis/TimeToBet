@@ -36,6 +36,8 @@ BET_URLS_DICT = {
     'https://www.betclic.com/fr/paris-sportifs/football-s1/italie-serie-a-c6',
     'Bundesliga':
     'https://www.betclic.com/fr/paris-sportifs/football-s1/allemagne-bundesliga-c5',
+    'Chili':
+    'https://www.betclic.com/fr/paris-sportifs/football-s1/chili-primera-c3584'
 }
 
 stats_cats = ['Possession', 'Attaques', 'Attaques dangereuses',
@@ -52,6 +54,7 @@ MATCHENDIRECT_URLS_DICT = {
     'Liga': 'https://www.matchendirect.fr/espagne/primera-division/',
     'SerieA': 'https://www.matchendirect.fr/italie/serie-a/',
     'Bundesliga': 'https://www.matchendirect.fr/allemagne/bundesliga-1/',
+    'Chili': 'https://www.matchendirect.fr/chili/clausura/',
 }
 
 
@@ -1112,7 +1115,7 @@ def get_stat_df(live_team, refresh):
           [{'name': col, 'id': col} for col in whole_df2.columns],
           whole_df2.to_dict('records'),
           )
-                game_score = f" Le score est actuellement de {whole_df2.iloc[0]['Buts']} - {whole_df2.iloc[0]['Buts']} !\n"
+                game_score = f" Le score est actuellement de {whole_df2.iloc[0]['Buts']} - {whole_df2.iloc[1]['Buts']} !\n"
     if good_game is not None:
         game_name = get_game_name(good_game)
         try:
@@ -1135,29 +1138,30 @@ def get_stat_df(live_team, refresh):
 def update_graph(odd_df, stat_df, previous_x=[], previous_y=[], final_time=None):
     target_odd = 1
     if stat_df is not None:
-        stat_df = stat_df.to_csv('stat')
-        this_minute_score, this_minute_proba, final_time = predict(pd.read_csv('stat'), 'alldata', final_time)
-        for proba in this_minute_proba:
-            if proba == -float('-inf'):
-                proba = 1
-        predicted_score = f"{this_minute_score[0]} - {this_minute_score[1]}"
-        if isinstance(odd_df, list):
-            odd_df = pd.DataFrame(odd_df)
-        if odd_df.empty is False:
-            try:
-                target_odd = odd_df[predicted_score]
-            except:
-                target_odd = odd_df.min(axis=1)
-        new_y = this_minute_proba[0] * this_minute_proba[1] * target_odd
-        previous_x.append(new_y)
         try:
             new_x = int(whole_df2.index.get_level_values("Minute").values[0][:-1])
         except:
-            previous_y.append(45)
-        else:
-            previous_y.append(new_x)
-        return [previous_x, previous_y, predicted_score, False]
-    return([], [], '', True)
+            new_x = 45
+        previous_y.append(new_x)
+        stat_df = stat_df.to_csv('stat')
+        if new_x > 20 & new_x <= 89:
+            this_minute_score, this_minute_proba, final_time = predict(pd.read_csv('stat'), 'alldata', final_time)
+            for proba in this_minute_proba:
+                if proba == -float('-inf'):
+                    proba = 1
+            predicted_score = f"{this_minute_score[0]} - {this_minute_score[1]}"
+            if isinstance(odd_df, list):
+                odd_df = pd.DataFrame(odd_df)
+            if odd_df.empty is False:
+                try:
+                    target_odd = odd_df[predicted_score]
+                except:
+                    target_odd = odd_df.min(axis=1)
+            new_y = this_minute_proba[0] * this_minute_proba[1] * target_odd
+            previous_x.append(new_y)
+            return [previous_x, previous_y, predicted_score, final_time]
+        return[previous_x, previous_y, None, final_time]
+    return([], [], '', final_time)
 
 # Lancement de l'app sur serveur local
 
