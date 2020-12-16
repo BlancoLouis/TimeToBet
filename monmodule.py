@@ -1133,4 +1133,4 @@ def get_stat_df(live_team, refresh):
 
 # gather_data('alldata', False, False)
 
-ignore_files()
+# ignore_files()
