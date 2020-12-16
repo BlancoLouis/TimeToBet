@@ -422,13 +422,13 @@ def sep_by_team(dataset):
     return datasets_by_team
 
 
-def regs(datafile, minute, team):
+def regs(datafile, minute, team, Y=None):
     """Crée un modèle de régression logistique multiclasse,
     entraîné sur un train set standardisé, testé sur un test
     set standardisé."""
     data = sep_by_time(sep_by_team(pd.read_csv(datafile)))
-
-    Y = final_scores_2(datafile)
+    if Y is None:
+        Y = final_scores_2(datafile)
     X = data[team][minute - 20]
     X = X.drop(['Unnamed: 0',
                 'Minute',
@@ -449,7 +449,7 @@ def regs(datafile, minute, team):
     print(metrics.accuracy_score(y_train, log_reg.predict(Z_train)))
     print(metrics.accuracy_score(y_test, log_reg.predict(Z_test)))
 
-    return log_reg, stds
+    return log_reg, stds, Y
 
 
 def prepare_data(dataset, stds, minute):
@@ -490,7 +490,7 @@ def final_scores_2(datafile):
     return [y1, y2]
 
 
-def predict(dataset, file):
+def predict(dataset, file, Y=None):
     """Prédit le score d'un match et sa probabilité
     à partir des statistiques de ce match et d'une base de données
     contenant des statistiques de matchs similaires."""
@@ -502,7 +502,7 @@ def predict(dataset, file):
     dataset['Time'] = minute
     t1_buts = dataset.loc[0, 'Buts']
     t2_buts = dataset.loc[1, 'Buts']
-    models = [regs(file, minute, 0), regs(file, minute, 1)]
+    models = [regs(file, minute, 0, Y), regs(file, minute, 1, Y)]
     data = prepare_data(dataset, [models[0][1], models[1][1]], minute)
     y1_scores = models[0][0].decision_function(data[0][0])[0]
     y2_scores = models[1][0].decision_function(data[1][0])[0]
@@ -514,7 +514,7 @@ def predict(dataset, file):
     prediction = [ns[0].index(max(ns[0])), ns[1].index(max(ns[1]))]
     probas = [max(ns[0]) / sum([x for x in ns[0] if x > 0]),
               max(ns[1]) / sum([x for x in ns[1] if x > 0])]
-    return prediction, probas
+    return prediction, probas, models[0][2]
 
 
 def likely_scores(scores, buts):
