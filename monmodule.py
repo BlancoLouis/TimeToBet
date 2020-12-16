@@ -124,7 +124,7 @@ def infos_game(link=None, to_csv=True):
 
     minute = browser.find_element_by_xpath('//*[@id="ajax-match-detail-1"]/div/div[3]/div[2]/div').text
     team_1 = browser.find_element_by_xpath('//*[@id="ajax-match-detail-1"]/div/div[3]/div[1]/a').text
-    team_2 = browser.find_element_by_xpath('//*[@id="ajax-match-detail-1"]/div/div[3]/div[3]/a').text 
+    team_2 = browser.find_element_by_xpath('//*[@id="ajax-match-detail-1"]/div/div[3]/div[3]/a').text
     index = pd.MultiIndex.from_product([[minute], [link], [team_1, team_2]],
                                        names=['Minute', 'Match', 'Equipe'])
     t_1 = {}
@@ -306,7 +306,7 @@ def complete_data(dataset, games_list, update, complete_file, y1):
                         values_nl_1.append(np.floor(prop_time
                                                     * (v_sup_1 - v_inf_1)
                                                     + v_inf_1))
-                        values_nl_2.append(np.floor(prop_time 
+                        values_nl_2.append(np.floor(prop_time
                                                     * (v_sup_2 - v_inf_2)
                                                     + v_inf_2))
                     dataset_new.loc[dataset_new.shape[0]] = values_nl_1
@@ -1040,6 +1040,7 @@ def get_stat_df(live_team, refresh):
     good_game = None
     game_name = ''
     whole_df = []
+    first_time = True
     for try_game in fetch_bet_urls(BET_URLS_DICT[championship]):
         if live_team in get_game_teams(try_game):
             good_game = try_game
@@ -1072,7 +1073,7 @@ def get_stat_df(live_team, refresh):
             pass
         else:
             if whole_df2 is not None:
-                [x_y[0], x_y[1], predicted_score] = update_graph(whole_df, whole_df2, previous_x=[x_y[0]], previous_y=[x_y[1]])
+                [x_y[0], x_y[1], predicted_score, first_time] = update_graph(whole_df, whole_df2, previous_x=[x_y[0]], previous_y=[x_y[1]], first_time)
                 info_game = whole_df2.to_csv('file')
                 to_return4 = {
                     'data':[
@@ -1095,7 +1096,7 @@ def get_stat_df(live_team, refresh):
             pass
         else:
             if whole_df2 is not None:
-                [x_y[0], x_y[1], predicted_score] = update_graph(whole_df, whole_df2, previous_x=[x_y[0]], previous_y=[x_y[1]])
+                [x_y[0], x_y[1], predicted_score, first_time] = update_graph(whole_df, whole_df2, previous_x=[x_y[0]], previous_y=[x_y[1]], first_time)
                 info_game = whole_df2.to_csv('file')
                 to_return4 = {
                     'data':[
@@ -1130,11 +1131,11 @@ def get_stat_df(live_team, refresh):
         to_return2 = list(to_return2)
     return(to_return1[0], to_return1[1], to_return2[0], to_return2[1], to_return3, to_return4)
 
-def update_graph(odd_df, stat_df, previous_x=[], previous_y=[]):
+def update_graph(odd_df, stat_df, previous_x=[], previous_y=[], first_time=True):
     target_odd = 1
     if stat_df is not None:
         stat_df = stat_df.to_csv('stat')
-        this_minute_score, this_minute_proba = predict(pd.read_csv('stat'), 'alldata')
+        this_minute_score, this_minute_proba = monmodule.predict(pd.read_csv('stat'), 'alldata')
         for proba in this_minute_proba:
             if proba == -float('-inf'):
                 proba = 1
@@ -1154,8 +1155,8 @@ def update_graph(odd_df, stat_df, previous_x=[], previous_y=[]):
             previous_y.append(45)
         else:
             previous_y.append(new_x)
-        return [previous_x, previous_y, predicted_score]
-    return([], [], '')
+        return [previous_x, previous_y, predicted_score, False]
+    return([], [], '', True)
 
 # Lancement de l'app sur serveur local
 
