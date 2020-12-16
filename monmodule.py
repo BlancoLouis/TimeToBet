@@ -311,9 +311,11 @@ def complete_data(dataset, games_list, update, complete_file, y1):
                                                     + v_inf_2))
                     dataset_new.loc[dataset_new.shape[0]] = values_nl_1
                     dataset_new.loc[dataset_new.shape[0]] = values_nl_2
-    dataset_new.dropna()
-    for row in range(dataset.shape[0]):
-        dataset_new['Time'] = dataset_new.loc[row, 'Minute'][0:len(dataset_new.loc[row, 'Minute']) - 1]
+    dataset = dataset_new.dropna()
+    for row in range(dataset_new.shape[0]):
+        tim = dataset_new.loc[row, 'Minute'][0:len(dataset_new.loc[row, 'Minute']) - 1]
+        dataset_new.loc[row, 'Temps'] = tim
+        print(dataset_new.loc[row, 'Temps'])
 
     return dataset_new
 
@@ -417,19 +419,16 @@ def regs(datafile, minute, team):
     set standardisé."""
     data = sep_by_time(sep_by_team(pd.read_csv(datafile)))
 
+    Y = final_scores_2(datafile)
     X = data[team][minute - 20]
-    y = pd.DataFrame()
-    files_list = [file for file in os.listdir() if file[-1] == "'"]
-    y1, y2, final_scores_list = final_scores(files_list)
-    Y = [y1, y2]
-    X = X.merge(Y[team], how='left', on='Match')
-    y = X['Nb_buts'].astype('int')
-    X = X.drop(['Unnamed: 0', 'Minute',
-                'Match', 'Equipe', 'Nb_buts',
-                'Remplacements'], axis=1)
-    X_train, X_test, y_train, y_test = train_test_split(X, y)
+    X = X.drop(['Unnamed: 0',
+                'Minute',
+                'Match',
+                'Equipe',
+                'Remplacements'],
+               axis=1)
+    X_train, X_test, y_train, y_test = train_test_split(X, Y[team])
     # print(X_train, X_test, y_train, y_test)
-
     log_reg = LogisticRegression(penalty='none',
                                  multi_class='multinomial',
                                  solver='newton-cg')
@@ -460,12 +459,34 @@ def prepare_data(dataset, stds, minute):
     return data
 
 
+def final_scores_2(datafile):
+    data = pd.read_csv(datafile)
+    games_list_index = {}
+    games_list = list(data['Match'].unique())
+    for elem in games_list:
+        games_list_index[elem] = 0
+    for elem in games_list:
+        for row in range(data.shape[0]):
+            if (data.loc[row, 'Match'] == elem
+                and data.loc[row, 'Temps'] > data.loc[games_list_index[elem], 'Temps']):
+                games_list_index[elem] = row
+    y1_lines = []
+    y2_lines = []
+    for row in range(data.shape[0]):
+        if row in games_list_index.values():
+            y1_lines.append(data.iloc[row])
+            y2_lines.append(data.iloc[row + 1])
+    y1 = pd.DataFrame(y1_lines)['Buts'].astype(int)
+    y2 = pd.DataFrame(y2_lines)['Buts'].astype(int)
+    return [y1, y2]
+
+
 def predict(dataset, file):
     """Prédit le score d'un match et sa probabilité
     à partir des statistiques de ce match et d'une base de données
     contenant des statistiques de matchs similaires."""
-    minute = dataset.loc[0, 'Minute'][0:2]
-    if minute == 'Mi':
+    minute = dataset.loc[0, 'Minute'][0:len(dataset.loc[0, 'Minute']) - 1]
+    if len(minute) > 3:
         minute = 45
     else :
         minute = int(minute)
@@ -491,11 +512,13 @@ def likely_scores(scores, buts):
     """Filtre certaines prédictions impossibles,
     notamment celles qui annoncent un nombre de buts plus
     faible que celui déjà atteint."""
-    # new_score = lambda score, gap: score * ((1 + gap) ** (-1 / 2))
+    new_score = lambda score, gap: score * ((1 + gap) ** (-1 / 2))
     for i, elem in enumerate(scores):
         for j, score in enumerate(elem):
             if j - buts[i] < 0:
                 scores[i][j] = -100000
+            else:
+                scores[i][j] = new_score(score, j - buts[i])
     return scores
 
 
@@ -1053,11 +1076,8 @@ def background():
 
 # Lancement de l'app sur serveur local
 
-if __name__ == '__main__':
-    app.run_server(debug=True)
+# if __name__ == '__main__':
+#     app.run_server(debug=True)
 
 
-# to_git(['bettime.ipynb', 'monmodule.py'],
-       # "'Documents/ENSAE/Python pour Data Scientist/TimeToBet'",
-       # "'git@github.com:BlancoLouis/TimeToBet.git'",
-       # "password_github.txt")
+# gather_data('alldata', False, False)
