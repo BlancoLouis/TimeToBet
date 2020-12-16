@@ -927,23 +927,22 @@ app.layout = html.Div(className= 'container',
   ]
   )
 def dropdown_options(refresh):
-  to_return1 = [
-  {'label' : '[' + list(BET_URLS_DICT.keys())[list(BET_URLS_DICT.values()).index(url)] + '] '+ live_team,
-  'value' : '[' + list(BET_URLS_DICT.keys())[list(BET_URLS_DICT.values()).index(url)] + '] '+ live_team}
-  for url in BET_URLS_DICT.values() for live_team in get_live_teams(url)
-  ]
-  to_return2 = {'display' : 'flex'}
-  return (to_return1, to_return2)
+    to_return1 = [
+    {'label' : '[' + list(BET_URLS_DICT.keys())[list(BET_URLS_DICT.values()).index(url)] + '] '+ live_team,
+    'value' : '[' + list(BET_URLS_DICT.keys())[list(BET_URLS_DICT.values()).index(url)] + '] '+ live_team}
+    for url in BET_URLS_DICT.values() for live_team in get_live_teams(url)]
+    to_return2 = {'display' : 'flex'}
+    return (to_return1, to_return2)
 
 # Selon le choix d'équipe, on change le classement affiché (et sa mise en forme conditionnelle pour mettre
 # en évidence l'équipe choisie dans ce classement).
 
 @app.callback(
-  [dash.dependencies.Output('ranking_table', 'columns'),
-  dash.dependencies.Output('ranking_table', 'data'),
-  dash.dependencies.Output('ranking_table', 'style_data_conditional')],
-  [dash.dependencies.Input('team_choice', 'value')]
-  )
+    [dash.dependencies.Output('ranking_table', 'columns'),
+     dash.dependencies.Output('ranking_table', 'data'),
+     dash.dependencies.Output('ranking_table', 'style_data_conditional')],
+    [dash.dependencies.Input('team_choice', 'value')]
+)
 
 # Ici, on va effectuer une recherche pour avoir la correspondance du nom de l'équipe sur Betclic (qu'on a)
 # en nom de l'équipe sur Matchendirect (que l'on cherche). Malheureusement, on n'a pas d'ID commun pour faire
@@ -952,61 +951,62 @@ def dropdown_options(refresh):
 # repérer, à partir d'une string S et d'une liste de string A, l'élément de A qui a le plus de similitude
 # avec S et, logiquement, les noms des équipes se ressemblant assez sur les deux sites, cela suffit.
 
+
 def chose_rank_championship(championship):
-  if championship is not None:
-    live_team = championship[championship.find(' ') + 1:].rstrip()
-    championship = championship[1:championship.find(']')]
-    opponent_team = 'Olympique Marseille'
-    for try_game in fetch_bet_urls(BET_URLS_DICT[championship]):
-      if live_team in get_game_teams(try_game):
-        for try_team in get_game_teams(try_game):
-          if live_team != try_team:
-            opponent_team = try_team
+    if championship is not None:
+        live_team = championship[championship.find(' ') + 1:].rstrip()
+        championship = championship[1:championship.find(']')]
+        opponent_team = 'Olympique Marseille'
+        for try_game in fetch_bet_urls(BET_URLS_DICT[championship]):
+            if live_team in get_game_teams(try_game):
+                for try_team in get_game_teams(try_game):
+                    if live_team != try_team:
+                        opponent_team = try_team
 
 # Seul problème (il en fallait un !), l'équipe allemande de 'Mayence' (nom Betclic) est enregistrée
 # au nom de 'Mainz 05' sur Matchendirect, on renomme donc cela à la main car, sinon, la fonction
 # extractOne confond avec le Bayern Munich.
 
-    if live_team == 'Mayence':
-      live_team = 'Mainz'
-    if opponent_team == 'Mayence':
-      opponent_team = 'Mainz'
-    df = get_ranking(MATCHENDIRECT_URLS_DICT[championship])
-    chosen_team = process.extractOne(live_team,df['Equipe'])[0]
-    opponent_team = process.extractOne(opponent_team, df['Equipe'])[0]
-    index = int(df.index[df['Equipe'] == chosen_team].tolist()[0]) - 1
-    opponent_index = int(df.index[df['Equipe'] == opponent_team].tolist()[0]) - 1
-    style_data_conditional = [
-    {
-    'if':{
-    'row_index': index,
-    },
-    'backgroundColor': '#98FB98',
-    },
-    {
-    'if':{
-    'row_index': opponent_index,
-    },
-    'backgroundColor': '#FD7B7B',
-    },
-    ]
-    return (
+        if live_team == 'Mayence':
+            live_team = 'Mainz'
+        if opponent_team == 'Mayence':
+            opponent_team = 'Mainz'
+        df = get_ranking(MATCHENDIRECT_URLS_DICT[championship])
+        chosen_team = process.extractOne(live_team,df['Equipe'])[0]
+        opponent_team = process.extractOne(opponent_team, df['Equipe'])[0]
+        index = int(df.index[df['Equipe'] == chosen_team].tolist()[0]) - 1
+        opponent_index = int(df.index[df['Equipe'] == opponent_team].tolist()[0]) - 1
+        style_data_conditional = [
+        {
+        'if':{
+        'row_index': index,
+        },
+        'backgroundColor': '#98FB98',
+        },
+        {
+        'if':{
+        'row_index': opponent_index,
+        },
+        'backgroundColor': '#FD7B7B',
+        },
+        ]
+        return (
       [{'name': col, 'id': col} for col in df.columns],
       df.to_dict('records'),
       style_data_conditional
       )
-  else:
-    return(
+    else:
+        return(
       [{'name': col, 'id': col} for col in get_ranking(MATCHENDIRECT_URLS_DICT['L1']).columns],
       get_ranking(MATCHENDIRECT_URLS_DICT['L1']).to_dict('records'),
       {}
       )
 
 @app.callback(
-  [dash.dependencies.Output('odds_table', 'columns'),
-  dash.dependencies.Output('odds_table', 'data'),
-  dash.dependencies.Output('stat_table', 'columns'),
-  dash.dependencies.Output('stat_table', 'data'),
+    [dash.dependencies.Output('odds_table', 'columns'),
+     dash.dependencies.Output('odds_table', 'data'),
+     dash.dependencies.Output('stat_table', 'columns'),
+     dash.dependencies.Output('stat_table', 'data'),
   #dash.dependencies.Output('show_match_evolution', 'children')
   #dash.dependencies.Output('bet_accuracy_evolution', 'data'),
   #dash.dependencies.Output('bet_accuracy_evolution', 'layout')
@@ -1017,113 +1017,113 @@ def chose_rank_championship(championship):
   ]
   )
 def get_stat_df(live_team, refresh):
-  championship = live_team[1:live_team.find(']')]
-  live_team = live_team[live_team.find(' ') + 1:].rstrip()
-  championship_url = MATCHENDIRECT_URLS_DICT[championship]
-  to_return1 = ([], [])
-  to_return2 = ([], [])
-  to_return3 = ''
-  to_return4 = ([], [])
-  text_to_add = ''
-  game_score = ''
-  good_game = None
-  for try_game in fetch_bet_urls(BET_URLS_DICT[championship]):
-    if live_team in get_game_teams(try_game):
-      good_game = try_game
-      whole_df = get_odds(good_game)
-      if whole_df.empty:
-        whole_df.insert(loc=0, column=get_game_name(good_game), value='Côtes indisponibles', allow_duplicates=True)
-        text_to_add = " On ne trouve pas les côtes du match en question !"
-        to_return1 = (
-          [{'name': col, 'id': col} for col in whole_df.columns],
-          whole_df.to_dict('records')
-          )
-      else:
-        whole_df.insert(loc=0, column=get_game_name(good_game), value='Côtes :', allow_duplicates=True)
-        to_return1 = (
-          [{'name': col, 'id': col} for col in whole_df.columns],
-          whole_df.to_dict('records')
-          )
-        min_odd = whole_df.min(axis=1)
-        print(min_odd.values)
-  page = process_url(MATCHENDIRECT_URLS_DICT[championship] + str(datetime.date.today().isocalendar()[0]) + '-' + str(datetime.date.today().isocalendar()[1]) + '/')
-  target_page = page.findAll('tr', {'class': 'sl'})
-  url_list = []
-  if len(target_page) > 1:
-    for elem in target_page:
-      url_list.append(elem.find('a', href=True)['href'])
-      link = 'https://www.matchendirect.fr/' + process.extractOne(live_team, url_list)[0]
-    try:
-      whole_df2 = infos_game(link=link, to_csv=False)
-    except:
-      pass
-    else:
-      if whole_df2 is not None:
-        info_game = whole_df2.to_csv('file')
+    championship = live_team[1:live_team.find(']')]
+    live_team = live_team[live_team.find(' ') + 1:].rstrip()
+    championship_url = MATCHENDIRECT_URLS_DICT[championship]
+    to_return1 = ([], [])
+    to_return2 = ([], [])
+    to_return3 = ''
+    to_return4 = ([], [])
+    text_to_add = ''
+    game_score = ''
+    good_game = None
+    for try_game in fetch_bet_urls(BET_URLS_DICT[championship]):
+        if live_team in get_game_teams(try_game):
+            good_game = try_game
+            whole_df = get_odds(good_game)
+            if whole_df.empty:
+                whole_df.insert(loc=0, column=get_game_name(good_game), value='Côtes indisponibles', allow_duplicates=True)
+                text_to_add = " On ne trouve pas les côtes du match en question !"
+                to_return1 = (
+              [{'name': col, 'id': col} for col in whole_df.columns],
+              whole_df.to_dict('records')
+              )
+            else:
+                whole_df.insert(loc=0, column=get_game_name(good_game), value='Côtes :', allow_duplicates=True)
+                to_return1 = (
+              [{'name': col, 'id': col} for col in whole_df.columns],
+              whole_df.to_dict('records')
+              )
+                min_odd = whole_df.min(axis=1)
+                print(min_odd.values)
+    page = process_url(MATCHENDIRECT_URLS_DICT[championship] + str(datetime.date.today().isocalendar()[0]) + '-' + str(datetime.date.today().isocalendar()[1]) + '/')
+    target_page = page.findAll('tr', {'class': 'sl'})
+    url_list = []
+    if len(target_page) > 1:
+        for elem in target_page:
+            url_list.append(elem.find('a', href=True)['href'])
+            link = 'https://www.matchendirect.fr/' + process.extractOne(live_team, url_list)[0]
         try:
-          this_minute_score, this_minute_proba = monmodule.predict(pd.read_csv('file'), 'alldata')
+            whole_df2 = infos_game(link=link, to_csv=False)
         except:
-          pass
+            pass
         else:
-          for proba in this_minute_proba:
-            if proba == -float(inf):
-              proba = 1
-          to_return4 = (
+            if whole_df2 is not None:
+                info_game = whole_df2.to_csv('file')
+                try:
+                    this_minute_score, this_minute_proba = monmodule.predict(pd.read_csv('file'), 'alldata')
+                except:
+                    pass
+                else:
+                    for proba in this_minute_proba:
+                        if proba == -float(inf):
+                            proba = 1
+                    to_return4 = (
             {
             'x': game_time, 'y': proba[0] * proba[1] / min_odd
             }
             )
-        to_return2 = (
+                to_return2 = (
           [{'name': col, 'id': col} for col in whole_df2.columns],
           whole_df2.to_dict('records')
           )
-        game_score = f" Le score est actuellement de {whole_df2.iloc[0]['Buts']} - {whole_df2.iloc[0]['Buts']} !\n"
-  elif len(target_page) == 1:
-    link = 'https://www.matchendirect.fr/' + page.find(('tr'), {'class': 'sl'}).find('a', href=True)['href']
-    try:
-      whole_df2 = infos_game(link=link, to_csv=False)
-    except:
-      pass
-    else:
-      if whole_df2 is not None:
-        info_game = whole_df2.to_csv('file')
+                game_score = f" Le score est actuellement de {whole_df2.iloc[0]['Buts']} - {whole_df2.iloc[0]['Buts']} !\n"
+    elif len(target_page) == 1:
+        link = 'https://www.matchendirect.fr/' + page.find(('tr'), {'class': 'sl'}).find('a', href=True)['href']
         try:
-          this_minute_score, this_minute_proba = monmodule.predict(pd.read_csv('file'), 'alldata')
+            whole_df2 = infos_game(link=link, to_csv=False)
         except:
-          pass
+            pass
         else:
-          for proba in this_minute_proba:
-            if proba == -float(inf):
-              proba = 1
-          to_return4 = (
+            if whole_df2 is not None:
+                info_game = whole_df2.to_csv('file')
+                try:
+                    this_minute_score, this_minute_proba = monmodule.predict(pd.read_csv('file'), 'alldata')
+                except:
+                    pass
+                else:
+                    for proba in this_minute_proba:
+                        if proba == -float(inf):
+                            proba = 1
+                    to_return4 = (
             {
             'x': game_time, 'y': proba[0] * proba[1] / min_odd
             }
             )
-        whole_df2.insert(loc=0, column=get_game_name(good_game), value=[get_game_teams(good_game)[0], get_game_teams(good_game)[1]], allow_duplicates=True)
-        to_return2 = (
+                whole_df2.insert(loc=0, column=get_game_name(good_game), value=[get_game_teams(good_game)[0], get_game_teams(good_game)[1]], allow_duplicates=True)
+                to_return2 = (
           [{'name': col, 'id': col} for col in whole_df2.columns],
           whole_df2.to_dict('records'),
           )
-        game_score = f" Le score est actuellement de {whole_df2.iloc[0]['Buts']} - {whole_df2.iloc[0]['Buts']} !\n"
-  if good_game is not None:
-    game_name = get_game_name(good_game)
-    try:
-      game_time = int(whole_df2.index.get_level_values("Minute").values[0][:-1])
-    except:
-      to_return3 = f"C'est la mi-temps du match {game_name} !\n" + game_score + " Regardez ce que recommande notre modèle..."
-    else:
-      to_return3 = f"C'est la {game_time}e minute du match {game_name} !\n" + game_score
-      if game_time < 20:
-        to_return3 += " Il est encore trop tôt pour prédire l'avenir..."
-      elif game_time >= 89:
-        to_return3 += " Il est trop tard pour aller parier sur Betclic !"
-      else:
-        to_return3 += " Regardez ce que recommande notre modèle..."
-    to_return3 += text_to_add
-    to_return1 = list(to_return1)
-    to_return2 = list(to_return2)
-  return(to_return1[0], to_return1[1], to_return2[0], to_return2[1], to_return3)
+                game_score = f" Le score est actuellement de {whole_df2.iloc[0]['Buts']} - {whole_df2.iloc[0]['Buts']} !\n"
+    if good_game is not None:
+        game_name = get_game_name(good_game)
+        try:
+            game_time = int(whole_df2.index.get_level_values("Minute").values[0][:-1])
+        except:
+            to_return3 = f"C'est la mi-temps du match {game_name} !\n" + game_score + " Regardez ce que recommande notre modèle..."
+        else:
+            to_return3 = f"C'est la {game_time}e minute du match {game_name} !\n" + game_score
+            if game_time < 20:
+                to_return3 += " Il est encore trop tôt pour prédire l'avenir..."
+            elif game_time >= 89:
+                to_return3 += " Il est trop tard pour aller parier sur Betclic !"
+            else:
+                to_return3 += " Regardez ce que recommande notre modèle..."
+        to_return3 += text_to_add
+        to_return1 = list(to_return1)
+        to_return2 = list(to_return2)
+    return(to_return1[0], to_return1[1], to_return2[0], to_return2[1], to_return3)
 
 
 # Lancement de l'app sur serveur local
