@@ -913,7 +913,7 @@ app.layout = html.Div(className= 'container',
   html.Br(),
   dcc.Interval(
     id='interval_component',
-    interval=60*1000,
+    interval=7*60*1000,
     n_intervals=0
     )
   ]
