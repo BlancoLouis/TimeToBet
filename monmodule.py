@@ -1018,7 +1018,7 @@ def chose_rank_championship(championship):
      dash.dependencies.Output('odds_table', 'data'),
      dash.dependencies.Output('stat_table', 'columns'),
      dash.dependencies.Output('stat_table', 'data'),
-     dash.dependencies.Output('show_match_evolution', 'children')
+     dash.dependencies.Output('show_match_evolution', 'children'),
      dash.dependencies.Output('bet_accuracy_evolution', 'figure'),
   ],
   [dash.dependencies.Input('team_choice', 'value'),
