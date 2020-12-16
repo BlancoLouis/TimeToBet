@@ -858,8 +858,6 @@ app.layout = html.Div(className= 'container',
            'width': '1100px'
       }
       ),
-
-      ),
     html.Div(id='show_match_evolution')
     ],
     style=
