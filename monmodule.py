@@ -838,14 +838,27 @@ app.layout = html.Div(className= 'container',
     dcc.Graph(
       id='bet_accuracy_evolution',
       figure={
-          'data': [
-              {'x': [1, 2, 3], 'y': [4, 1, 2], 'name': 'Accuracy du code sur le score'},
-              {'x': [1, 2, 3], 'y': [2, 4, 5], 'name': 'Côte'},
-          ],
           'layout': {
-              'title': 'Quand parier ?'
+            'shapes' : dict(
+            type="line",
+            x0=0,
+            x1=130,
+            y0=2,
+            y1=2,
+            line=dict(
+            color="Red",
+            width=4,
+            dash="dashdot"
+            )
+            ),
+          'title': 'Quand parier ?'
           }
+      },
+       style={
+           'width': '1100px'
       }
+      ),
+
       ),
     html.Div(id='show_match_evolution')
     ],
@@ -1007,12 +1020,10 @@ def chose_rank_championship(championship):
      dash.dependencies.Output('odds_table', 'data'),
      dash.dependencies.Output('stat_table', 'columns'),
      dash.dependencies.Output('stat_table', 'data'),
-  #dash.dependencies.Output('show_match_evolution', 'children')
-  #dash.dependencies.Output('bet_accuracy_evolution', 'data'),
-  #dash.dependencies.Output('bet_accuracy_evolution', 'layout')
+     dash.dependencies.Output('show_match_evolution', 'children')
+     dash.dependencies.Output('bet_accuracy_evolution', 'figure'),
   ],
   [dash.dependencies.Input('team_choice', 'value'),
-  #dash.dependencies.Input('bet_accuracy_evolution', 'data'),
   dash.dependencies.Input('interval_component', 'n_intervals')
   ]
   )
@@ -1023,10 +1034,14 @@ def get_stat_df(live_team, refresh):
     to_return1 = ([], [])
     to_return2 = ([], [])
     to_return3 = ''
-    to_return4 = ([], [])
+    to_return4 = {}
+    global x_y
+    x_y = [[], []]
     text_to_add = ''
     game_score = ''
     good_game = None
+    game_name = ''
+    whole_df = []
     for try_game in fetch_bet_urls(BET_URLS_DICT[championship]):
         if live_team in get_game_teams(try_game):
             good_game = try_game
@@ -1059,20 +1074,16 @@ def get_stat_df(live_team, refresh):
             pass
         else:
             if whole_df2 is not None:
+                [x_y[0], x_y[1], predicted_score] = update_graph(whole_df, whole_df2, previous_x=[x_y[0]], previous_y=[x_y[1]])
                 info_game = whole_df2.to_csv('file')
-                try:
-                    this_minute_score, this_minute_proba = monmodule.predict(pd.read_csv('file'), 'alldata')
-                except:
-                    pass
-                else:
-                    for proba in this_minute_proba:
-                        if proba == -float(inf):
-                            proba = 1
-                    to_return4 = (
-            {
-            'x': game_time, 'y': proba[0] * proba[1] / min_odd
-            }
-            )
+                to_return4 = {
+                    'data':[
+                        {'x': x_y[0], 'y': x_y[0]}
+                    ],
+                    'layout': {
+                        'title': f"Notre prédiction pour {game_name} : score de {predicted_score}. <br> C'est un bon moment pour parier si {x_y[0][-1].values[0]} > 1 !"
+                    }
+                }
                 to_return2 = (
           [{'name': col, 'id': col} for col in whole_df2.columns],
           whole_df2.to_dict('records')
@@ -1086,20 +1097,16 @@ def get_stat_df(live_team, refresh):
             pass
         else:
             if whole_df2 is not None:
+                [x_y[0], x_y[1], predicted_score] = update_graph(whole_df, whole_df2, previous_x=[x_y[0]], previous_y=[x_y[1]])
                 info_game = whole_df2.to_csv('file')
-                try:
-                    this_minute_score, this_minute_proba = monmodule.predict(pd.read_csv('file'), 'alldata')
-                except:
-                    pass
-                else:
-                    for proba in this_minute_proba:
-                        if proba == -float(inf):
-                            proba = 1
-                    to_return4 = (
-            {
-            'x': game_time, 'y': proba[0] * proba[1] / min_odd
-            }
-            )
+                to_return4 = {
+                    'data':[
+                        {'x': x_y[0], 'y': x_y[0]}
+                    ],
+                    'layout': {
+                        'title': f"Notre prédiction pour {game_name} : score de {predicted_score}. <br> C'est un bon moment pour parier si {x_y[0][-1].values[0]} > 1 !"
+                    }
+                }
                 whole_df2.insert(loc=0, column=get_game_name(good_game), value=[get_game_teams(good_game)[0], get_game_teams(good_game)[1]], allow_duplicates=True)
                 to_return2 = (
           [{'name': col, 'id': col} for col in whole_df2.columns],
@@ -1123,8 +1130,34 @@ def get_stat_df(live_team, refresh):
         to_return3 += text_to_add
         to_return1 = list(to_return1)
         to_return2 = list(to_return2)
-    return(to_return1[0], to_return1[1], to_return2[0], to_return2[1], to_return3)
+    return(to_return1[0], to_return1[1], to_return2[0], to_return2[1], to_return3, to_return4)
 
+def update_graph(odd_df, stat_df, previous_x=[], previous_y=[]):
+    target_odd = 1
+    if stat_df is not None:
+        stat_df = stat_df.to_csv('stat')
+        this_minute_score, this_minute_proba = monmodule.predict(pd.read_csv('stat'), 'alldata')
+        for proba in this_minute_proba:
+            if proba == -float('-inf'):
+                proba = 1
+        predicted_score = f"{this_minute_score[0]} - {this_minute_score[1]}"
+        if isinstance(odd_df, list):
+            odd_df = pd.DataFrame(odd_df)
+        if odd_df.empty is False:
+            try:
+                target_odd = odd_df[predicted_score]
+            except:
+                target_odd = odd_df.min(axis=1)
+        new_y = this_minute_proba[0] * this_minute_proba[1] * target_odd
+        previous_x.append(new_y)
+        try:
+            new_x = int(whole_df2.index.get_level_values("Minute").values[0][:-1])
+        except:
+            previous_y.append(45)
+        else:
+            previous_y.append(new_x)
+        return [previous_x, previous_y, predicted_score]
+    return([], [], '')
 
 # Lancement de l'app sur serveur local
 
