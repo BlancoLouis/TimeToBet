@@ -913,7 +913,7 @@ app.layout = html.Div(className= 'container',
   html.Br(),
   dcc.Interval(
     id='interval_component',
-    interval=7*60*1000,
+    interval=60*1000,
     n_intervals=0
     )
   ]
@@ -1040,7 +1040,8 @@ def get_stat_df(live_team, refresh):
     good_game = None
     game_name = ''
     whole_df = []
-    first_time = True
+    global final_time
+    final_time = None
     for try_game in fetch_bet_urls(BET_URLS_DICT[championship]):
         if live_team in get_game_teams(try_game):
             good_game = try_game
@@ -1073,7 +1074,7 @@ def get_stat_df(live_team, refresh):
             pass
         else:
             if whole_df2 is not None:
-                [x_y[0], x_y[1], predicted_score, first_time] = update_graph(whole_df, whole_df2, previous_x=[x_y[0]], previous_y=[x_y[1]], first_time)
+                [x_y[0], x_y[1], predicted_score, final_time] = update_graph(whole_df, whole_df2, previous_x=[x_y[0]], previous_y=[x_y[1]], final_time=final_time)
                 info_game = whole_df2.to_csv('file')
                 to_return4 = {
                     'data':[
@@ -1096,7 +1097,7 @@ def get_stat_df(live_team, refresh):
             pass
         else:
             if whole_df2 is not None:
-                [x_y[0], x_y[1], predicted_score, first_time] = update_graph(whole_df, whole_df2, previous_x=[x_y[0]], previous_y=[x_y[1]], first_time)
+                [x_y[0], x_y[1], predicted_score, final_time] = update_graph(whole_df, whole_df2, previous_x=[x_y[0]], previous_y=[x_y[1]], final_time=final_time)
                 info_game = whole_df2.to_csv('file')
                 to_return4 = {
                     'data':[
@@ -1131,11 +1132,11 @@ def get_stat_df(live_team, refresh):
         to_return2 = list(to_return2)
     return(to_return1[0], to_return1[1], to_return2[0], to_return2[1], to_return3, to_return4)
 
-def update_graph(odd_df, stat_df, previous_x=[], previous_y=[], first_time=True):
+def update_graph(odd_df, stat_df, previous_x=[], previous_y=[], final_time=None):
     target_odd = 1
     if stat_df is not None:
         stat_df = stat_df.to_csv('stat')
-        this_minute_score, this_minute_proba = monmodule.predict(pd.read_csv('stat'), 'alldata')
+        this_minute_score, this_minute_proba, final_time = predict(pd.read_csv('stat'), 'alldata', final_time)
         for proba in this_minute_proba:
             if proba == -float('-inf'):
                 proba = 1
@@ -1160,8 +1161,8 @@ def update_graph(odd_df, stat_df, previous_x=[], previous_y=[], first_time=True)
 
 # Lancement de l'app sur serveur local
 
-# if __name__ == '__main__':
-#    app.run_server(debug=True)
+if __name__ == '__main__':
+    app.run_server(debug=True)
 
 # gather_data('alldata', False, False)
 
